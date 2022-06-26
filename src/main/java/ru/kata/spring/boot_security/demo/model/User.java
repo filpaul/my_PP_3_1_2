@@ -1,18 +1,19 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
 
@@ -36,39 +37,39 @@ public class User implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "users_roles",
-            joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Collection<Role> roles = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
 
-    public User() {
-    }
-
-    public User(String name, String surName, int age, String email, String password, Collection<Role> roles) {
-        this.name = name;
-        this.surName = surName;
-        this.age = age;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
-    }
-    public Set<String> getNamesOfRoles() {
-        return getRoles().stream().map(Role::getName)
-                .map(name -> name.startsWith("ROLE_") ? name.substring(5) : name).collect(Collectors.toSet());
-    }
-    public boolean containsRoleName(String roleName) {
-        return roles.stream().map(Role::getName).collect(Collectors.toList()).contains(roleName);
-    }
+    private Set<Role> roleSet;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).collect(Collectors.toList());
+        return getRoleSet();
     }
 
     @Override
     public String getUsername() {
         return email;
+    }
+
+    public Set<Role> getRoleSet() {
+        return roleSet;
+    }
+
+    public void setRoleSet(Set<Role> roleSet) {
+        this.roleSet = roleSet;
+    }
+
+    public User(String name, String surName, int age, String email, String password) {
+        this.name = name;
+        this.surName = surName;
+        this.age = age;
+        this.email = email;
+        this.password = password;
     }
 
     @Override

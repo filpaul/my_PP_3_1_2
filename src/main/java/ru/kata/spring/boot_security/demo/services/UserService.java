@@ -1,20 +1,69 @@
 package ru.kata.spring.boot_security.demo.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
 import java.util.List;
+@Service
+public class UserService implements UserDetailsService {
 
-public interface UserService {
+    private final UserRepository userRepository;
 
-    List<User> getAllUsers();
+    private final PasswordEncoder passwordEncoder;
 
-    void saveUser(User user);
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-    User getUser(int id);
+    public void addUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+    }
 
-    void deleteUser(int id);
+    public void removeUserById(int id) {
+        userRepository.deleteById(id);
+    }
 
-    void updateUser(User user);
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
-    User getUserByEmail(String email);
+    public void cleanUsersTable() {
+        userRepository.deleteAll();
+    }
+
+    public void updateUser(User user) {
+        if(user.getPassword() == "") {
+            user.setPassword(getUserById(user.getId()).getPassword());
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        userRepository.save(user);
+    }
+
+    public User getUserById(int id) {
+        return userRepository.findById(id).get();
+    }
+
+    public User getUserByEmail(String username) {
+        return userRepository.findUserByEmail(username);
+    }
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserDetails user = userRepository.findUserByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return user;
+    }
 }
