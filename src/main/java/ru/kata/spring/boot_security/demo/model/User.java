@@ -54,16 +54,16 @@ public class User implements UserDetails {
         this.roles = roles;
     }
     public Set<String> getNamesOfRoles() {
-        return getRoles().stream().map(Role::getName)
+        return getRoles().stream().map(Role::getRoleName)
                 .map(name -> name.startsWith("ROLE_") ? name.substring(5) : name).collect(Collectors.toSet());
     }
     public boolean containsRoleName(String roleName) {
-        return roles.stream().map(Role::getName).collect(Collectors.toList()).contains(roleName);
+        return roles.stream().map(Role::getRoleName).collect(Collectors.toList()).contains(roleName);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).collect(Collectors.toList());
+        return getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getRoleName())).collect(Collectors.toList());
     }
 
     @Override
