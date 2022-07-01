@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserService {
 
     UserRepository userRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -27,19 +27,13 @@ public class UserService implements UserDetailsService {
 
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
-        return user == null ? null : user;
-    }
-
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
     public boolean saveUser(User user) {
 
-        User userDB = userRepository.findByEmail(user.getUsername());
+        User userDB = userRepository.getUserByEmail(user.getUsername());
         if (userDB != null) {
             return false;
         }
@@ -69,5 +63,8 @@ public class UserService implements UserDetailsService {
     public User findById(Integer id) {
         User user = userRepository.findById(id).orElse(new User());
         return user;
+    }
+    public User getUserByEmail(String email) {
+        return userRepository.getUserByEmail(email);
     }
 }
