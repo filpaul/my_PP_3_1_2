@@ -60,11 +60,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.getUserByEmail(email);
+    }
+
     public User findById(Integer id) {
         User user = userRepository.findById(id).orElse(new User());
         return user;
-    }
-    public User getUserByEmail(String email) {
-        return userRepository.getUserByEmail(email);
     }
 }
